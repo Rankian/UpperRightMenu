@@ -22,6 +22,6 @@ Add this to your module's `build.gradle` file (make sure the version matches the
 ```gradle
 dependencies {
 	...
-	compile 'com.sanjie.snackbar:top-right-menu:1.0.0'
+	compile 'com.sanjie.menu:top-right-menu:1.0.0'
 }
 ```
