@@ -1,0 +1,135 @@
+apply plugin: 'com.android.library'
+//配置插件
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:25.1.1'
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:recyclerview-v7:25.1.1'
+}
+
+version = "1.0.0"
+def siteUrl = 'https://github.com/Rankian/UpperRightMenu'//项目主页
+def gitUrl = 'https://github.com/Rankian/UpperRightMenu'//git仓库地址
+
+group = "com.sanjie.snackbar"//包名
+
+install{
+    repositories.mavenInstaller{
+        pom{
+            project{
+                packaging 'aar'
+                name 'The drop-down menu appears in the upper right corner of the screen'   //项目描述
+                url siteUrl
+                //打开开源协议 一般都是Apache License2.0
+                licenses{
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers{
+                    developer{
+                        id 'SanJie'//公司id
+                        name 'rankian'//用户名
+                        email 'langsanjie@outlook.com'
+                    }
+                }
+                //SCM
+                scm{
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+// 生成jar包的task
+task sourcesJar(type: Jar){
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+// 生成javaDoc的jar
+task javadoc(type: Javadoc) {
+    options.encoding = "UTF-8"
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+//下面设置编码格式，重点注意，如果不设置可能会在gradlew install的时候出现GBK编码映射错误
+javadoc {
+    options {
+        encoding "UTF-8"
+        charSet 'UTF-8'
+        author true
+        version true
+        links "http://docs.oracle.com/javase/7/docs/api"
+        title 'The drop-down menu appears in the upper right corner of the screen'   // 文档标题
+    }
+}
+artifacts {
+//    archives javadocJar
+    archives sourcesJar
+}
+
+// 生成jar包
+task releaseJar(type: Copy) {
+    from( 'build/intermediates/bundles/release')
+    into( '../jar')
+    include('classes.jar')
+    rename('classes.jar', 'okgo-' + version + '.jar')
+}
+// 这里是读取Bintray相关的信息，我们上传项目到github上的时候会把gradle文件传上去，
+// 所以不要把帐号密码的信息直接写在这里，写在local.properties中，这里动态读取。
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+bintray {
+
+    //读取 local.properties 文件里面的 bintray.user
+    user = properties.getProperty("bintray.user")
+
+    //读取 local.properties 文件里面的 bintray.apikey
+    key = properties.getProperty("bintray.apikey")
+
+    configurations = ['archives']
+    pkg {
+        userOrg = "rankian"        //发布到JCenter的组织，注意新版本的bintray是需要手动创建的
+        repo = "SanJie"              //发布到JCenter上的仓库名称，注意新版本的bintray是需要手动创建的
+        // 发布到Bintray上的项目名字
+        name = "UpperRightMenu"
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ["Apache-2.0"]
+        publish = true  // 是否是公开项目
+    }
+}
